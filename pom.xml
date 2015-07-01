@@ -26,6 +26,7 @@
 
                 <configuration>
                     <tagName>github-release-parent-${project.version}</tagName>
+                    <preRelease>true</preRelease>
                 </configuration>
 
                 <executions>
