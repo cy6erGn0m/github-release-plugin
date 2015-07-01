@@ -14,6 +14,8 @@ data class Auth(val userName: String, val personalAccessToken: String)
 data class Repo(val serverEndpoint: String, val user: String, val repoName: String)
 data class Release(val tagName: String, val releaseId: Long, val releasesFormat: String, val uploadFormat: String, val htmlPage: String)
 
+fun endpointOf(protoSpec: String?, hostSpec: String) = "${protoSpec ?: "https://"}api.$hostSpec"
+
 fun connectionOf(url: String, method: String = "GET", auth: Auth? = null): HttpURLConnection {
     val connection = URL(url).openConnection() as HttpURLConnection
     connection.setRequestProperty("User-Agent", "Kotlin")

@@ -5,12 +5,12 @@
     <parent>
         <artifactId>github-release-parent</artifactId>
         <groupId>cy.github</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>cy.github</groupId>
     <artifactId>github-release-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>github-release-plugin Maven Plugin</name>
@@ -71,6 +71,7 @@
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
 
         <plugins>
             <plugin>
