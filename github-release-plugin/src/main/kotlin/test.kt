@@ -13,7 +13,7 @@ import org.codehaus.plexus.PlexusContainer
 import java.util.*
 import kotlin.properties.Delegates
 
-Mojo(name = "yo", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresOnline = true, threadSafe = true)
+Mojo(name = "gh-upload", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresOnline = true, threadSafe = true)
 public class GitHubUpload : AbstractMojo() {
 
     Parameter(defaultValue = "\${project}", readonly = true, required = true)

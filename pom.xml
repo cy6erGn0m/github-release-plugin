@@ -16,4 +16,33 @@
         <module>github-release-plugin</module>
         <module>github-release-shared</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>cy.github</groupId>
+                <artifactId>github-release-plugin</artifactId>
+                <version>1.0</version>
+
+                <configuration>
+                    <tagName>github-release-parent-${project.version}</tagName>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>gh-upload</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/cy6ergn0m/maven/github-release-plugin</url>
+        </repository>
+    </distributionManagement>
 </project>
