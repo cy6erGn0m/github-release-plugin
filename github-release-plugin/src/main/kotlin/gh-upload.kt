@@ -9,12 +9,14 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import org.apache.maven.settings.Server
 import org.apache.maven.settings.Settings
-import org.codehaus.plexus.PlexusContainer
-import java.util.*
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import kotlin.properties.Delegates
 
 Mojo(name = "gh-upload", defaultPhase = LifecyclePhase.DEPLOY, requiresOnline = true, threadSafe = true)
 public class GitHubUpload : AbstractMojo() {
+
+    Component
+    var security: SecDispatcher? = null
 
     Parameter(defaultValue = "\${project}", readonly = true, required = true)
     var project: MavenProject? = null
@@ -59,7 +61,7 @@ public class GitHubUpload : AbstractMojo() {
         val serverSettings = findServerSettings() ?: throw MojoFailureException("GitHub upload failed: no server configuration found for $serverId in settings.xml")
         val auth = Auth(
                 userName = serverSettings.getUsername() ?: throw MojoFailureException("No username configured for github server ${serverSettings.getId()}"),
-                personalAccessToken = serverSettings.getPassword() ?: throw MojoFailureException("No password/personal access token specified for github server ${serverSettings.getId()}")
+                personalAccessToken = serverSettings.getPassword()?.decryptIfNeeded() ?: throw MojoFailureException("No password/personal access token specified for github server ${serverSettings.getId()}")
         )
 
         getLog().info("Contacting server ${serverSettings.getId()} @ ${repo.serverEndpoint}")
@@ -93,6 +95,10 @@ public class GitHubUpload : AbstractMojo() {
 
         getLog().info("Upload for project ${project!!.getArtifactId()} completed. See ${release.htmlPage}")
     }
+
+    private fun String.decryptIfNeeded() = "\\{.*\\}".toRegex().match(this)?.let { m ->
+        security?.decrypt(m.value)
+    } ?: this
 
     private val interactiveMode: Boolean
         get() = settings?.isInteractiveMode() ?: false
