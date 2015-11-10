@@ -1,13 +1,11 @@
 package cy.github
 
-import cy.rfc6570.expandURLFormat
-import org.json.simple.JSONObject
-import java.io.File
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.Base64
-import javax.net.ssl.HttpsURLConnection
+import cy.rfc6570.*
+import org.json.simple.*
+import java.io.*
+import java.net.*
+import java.util.*
+import javax.net.ssl.*
 
 
 data class Auth(val userName: String, val personalAccessToken: String)
@@ -20,11 +18,11 @@ fun connectionOf(url: String, method: String = "GET", auth: Auth? = null): HttpU
     val connection = URL(url).openConnection() as HttpURLConnection
     connection.setRequestProperty("User-Agent", "Kotlin")
     connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
-    connection.setInstanceFollowRedirects(true)
-    connection.setAllowUserInteraction(false)
-    connection.setDefaultUseCaches(false)
-    connection.setDoInput(true)
-    connection.setRequestMethod(method)
+    connection.instanceFollowRedirects = true
+    connection.allowUserInteraction = false
+    connection.defaultUseCaches = false
+    connection.doInput = true
+    connection.requestMethod = method
     if (auth != null) {
         connection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString("${auth.userName}:${auth.personalAccessToken}".toByteArray()))
     }
@@ -40,21 +38,21 @@ fun connectionOf(url: String, method: String = "GET", auth: Auth? = null): HttpU
 
 fun createRelease(auth: Auth, releasesFormat: String, tagName: String, releaseTitle: String, description: String, preRelease: Boolean): Release? {
     val request = JSONObject()
-    request.set("tag_name", tagName)
-    request.set("target_commitish", null)
-    request.set("name", releaseTitle)
-    request.set("body", description)
-    request.set("draft", false)
-    request.set("prerelease", preRelease)
+    request["tag_name"] = tagName
+    request["target_commitish"] = null
+    request["name"] = releaseTitle
+    request["body"] = description
+    request["draft"] = false
+    request["prerelease"] = preRelease
 
     val connection = connectionOf(releasesFormat.expandURLFormat(emptyMap<String, String>()), "POST", auth)
-    connection.setDoOutput(true)
-    connection.getOutputStream().bufferedWriter().use {
+    connection.doOutput = true
+    connection.outputStream.bufferedWriter().use {
         request.writeJSONString(it)
     }
 
     //println("${connection.getResponseCode()} ${connection.getResponseMessage()}")
-    connection.getErrorStream()?.let { error ->
+    connection.errorStream?.let { error ->
         error.use {
             it.copyTo(System.out)
         }
@@ -77,7 +75,7 @@ fun JSONObject?.parseRelease(releasesFormat: String): Release? {
     return if (this == null || id == null) {
         null
     } else {
-        Release(this.get("tag_name")!!.toString(), this.getAsLong("id")!!, releasesFormat, this.get("upload_url")!!.toString(), this.get("html_url")!!.toString())
+        Release(this.getRaw("tag_name")!!.toString(), this.getAsLong("id")!!, releasesFormat, this.getRaw("upload_url")!!.toString(), this.getRaw("html_url")!!.toString())
     }
 }
 
@@ -104,19 +102,19 @@ fun upload(auth: Auth, uploadFormat: String, source: File, name: String = source
 
         else -> "binary/octet-stream"
     })
-    connection.setDoOutput(true)
+    connection.doOutput = true
 
-    connection.getOutputStream().use { out ->
+    connection.outputStream.use { out ->
         source.inputStream().use { ins ->
             ins.copyTo(out)
         }
     }
 
-    connection.getErrorStream()?.let { error ->
+    connection.errorStream?.let { error ->
         error.use {
             it.copyTo(System.out)
         }
-        throw IOException("${connection.getResponseCode()} ${connection.getResponseMessage()}")
+        throw IOException("${connection.responseCode} ${connection.responseMessage}")
     }
 
     connection.withReader {
@@ -126,10 +124,10 @@ fun upload(auth: Auth, uploadFormat: String, source: File, name: String = source
 
 fun probeGitHubRepositoryFormat(base: String = "https://api.github.com", auth: Auth? = null): String =
         connectionOf(base, auth = auth).withReader {
-            it.toJSONObject()?.get("repository_url")?.toString() ?: throw IllegalArgumentException("No repository_url endpoint found for $base")
+            it.toJSONObject()?.getRaw("repository_url")?.toString() ?: throw IllegalArgumentException("No repository_url endpoint found for $base")
         }
 
 fun probeGitHubReleasesFormat(repositoryFormat: String, repo: Repo, auth: Auth? = null): String =
         connectionOf(repositoryFormat.expandURLFormat(mapOf("owner" to repo.user, "repo" to repo.repoName)), auth = auth).withReader {
-            it.toJSONObject()?.get("releases_url")?.toString() ?: throw IllegalArgumentException("No releases_url found for $repositoryFormat ($repo)")
+            it.toJSONObject()?.getRaw("releases_url")?.toString() ?: throw IllegalArgumentException("No releases_url found for $repositoryFormat ($repo)")
         }
