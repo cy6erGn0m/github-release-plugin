@@ -4,7 +4,7 @@
 
     <groupId>cy.github</groupId>
     <artifactId>github-release-parent</artifactId>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.2.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
