@@ -5,12 +5,12 @@
     <parent>
         <artifactId>github-release-parent</artifactId>
         <groupId>cy.github</groupId>
-        <version>0.2.1</version>
+        <version>0.2.2-SNAPSHOT</version>
     </parent>
 
     <groupId>cy.github</groupId>
     <artifactId>github-release-plugin</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>github-release-plugin Maven Plugin</name>
