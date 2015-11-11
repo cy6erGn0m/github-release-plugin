@@ -30,7 +30,7 @@
             <plugin>
                 <groupId>cy.github</groupId>
                 <artifactId>github-release-plugin</artifactId>
-                <version>0.2</version>
+                <version>0.2.2</version>
 
                 <configuration>
                     <tagName>github-release-parent-${project.version}</tagName>
