@@ -4,28 +4,32 @@ import cy.rfc6570.*
 import org.json.simple.*
 import java.io.*
 import java.net.*
-import java.util.*
 import javax.net.ssl.*
 
-
-data class Auth(val userName: String, val personalAccessToken: String)
 data class Repo(val serverEndpoint: String, val user: String, val repoName: String)
 data class Release(val tagName: String, val releaseId: Long, val releasesFormat: String, val uploadFormat: String, val htmlPage: String)
 
 fun endpointOf(protoSpec: String?, hostSpec: String) = "${protoSpec ?: "https://"}api.$hostSpec"
 
-fun connectionOf(url: String, method: String = "GET", auth: Auth? = null): HttpURLConnection {
+fun connectionOf(url: String, method: String = "GET", token: String? = null): HttpURLConnection {
     val connection = URL(url).openConnection() as HttpURLConnection
     connection.setRequestProperty("User-Agent", "Kotlin")
     connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
-    connection.instanceFollowRedirects = true
+
+    connection.instanceFollowRedirects = false
     connection.allowUserInteraction = false
     connection.defaultUseCaches = false
+    connection.useCaches = false
     connection.doInput = true
     connection.requestMethod = method
-    if (auth != null) {
-        connection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString("${auth.userName}:${auth.personalAccessToken}".toByteArray()))
+
+    connection.connectTimeout = 15000
+    connection.readTimeout = 30000
+
+    if (token != null) {
+        connection.setRequestProperty("Authorization", "token " + token)
     }
+
     if (connection is HttpsURLConnection) {
 //        connection.setHostnameVerifier { host, sslsession ->
 //            if (host in unsafeHosts) {
@@ -36,38 +40,43 @@ fun connectionOf(url: String, method: String = "GET", auth: Auth? = null): HttpU
     return connection
 }
 
-fun createRelease(auth: Auth, releasesFormat: String, tagName: String, releaseTitle: String, description: String, preRelease: Boolean): Release? {
+fun jsonOf(url: String, method: String = "GET", token: String? = null, body: JSONObject? = null): JSONObject? {
+    val connection = connectionOf(url, method, token)
+
+    try {
+        if (body != null) {
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.doOutput = true
+            connection.outputStream.bufferedWriter(Charsets.UTF_8).use { writer ->
+                body.writeJSONString(writer)
+            }
+        }
+
+        return connection.withReader {
+            JSONValue.parse(it) as JSONObject
+        }
+    } catch (ffn: FileNotFoundException) {
+        return null
+    } catch (e: IOException) {
+        throw IOException("Failed due to ${connection.errorStream?.bufferedReader()?.readText()}", e)
+    } finally {
+        connection.disconnect()
+    }
+}
+
+fun createRelease(token: String, releasesFormat: String, tagName: String, releaseTitle: String, description: String, preRelease: Boolean): Release? {
     val request = JSONObject()
     request["tag_name"] = tagName
-    request["target_commitish"] = null
     request["name"] = releaseTitle
     request["body"] = description
     request["draft"] = false
     request["prerelease"] = preRelease
 
-    val connection = connectionOf(releasesFormat.expandURLFormat(emptyMap<String, String>()), "POST", auth)
-    connection.doOutput = true
-    connection.outputStream.bufferedWriter().use {
-        request.writeJSONString(it)
-    }
-
-    //println("${connection.getResponseCode()} ${connection.getResponseMessage()}")
-    connection.errorStream?.let { error ->
-        error.use {
-            it.copyTo(System.out)
-        }
-        return null
-    }
-
-    return connection.withReader {
-        it.toJSONObject().parseRelease(releasesFormat)
-    }
+    return jsonOf(releasesFormat.expandURLFormat(emptyMap<String, String>()), "POST", token, body = request)?.parseRelease(releasesFormat)
 }
 
-fun findRelease(releasesFormat: String, tagName: String, auth: Auth? = null): Release? =
-        connectionOf("${releasesFormat.expandURLFormat(emptyMap<String, String>())}/tags/${tagName.encodeURLComponent()}", auth = auth).withReader { stream ->
-            stream.toJSONObject().parseRelease(releasesFormat)
-        }
+fun findRelease(releasesFormat: String, tagName: String, token: String? = null): Release? =
+        jsonOf("${releasesFormat.expandURLFormat(emptyMap<String, String>())}/tags/${tagName.encodeURLComponent()}", token = token).parseRelease(releasesFormat)
 
 fun JSONObject?.parseRelease(releasesFormat: String): Release? {
     val id = this?.getAsLong("id")
@@ -79,8 +88,8 @@ fun JSONObject?.parseRelease(releasesFormat: String): Release? {
     }
 }
 
-fun upload(auth: Auth, uploadFormat: String, source: File, name: String = source.name) {
-    val connection = connectionOf(uploadFormat.expandURLFormat(mapOf("name" to name)), "POST", auth)
+fun upload(token: String, uploadFormat: String, source: File, name: String = source.name) {
+    val connection = connectionOf(uploadFormat.expandURLFormat(mapOf("name" to name)), "POST", token)
     connection.setRequestProperty("Content-Type", when (source.extension.toLowerCase()) {
         "txt" -> "text/plain"
         "html", "htm", "xhtml" -> "text/html"
@@ -122,12 +131,20 @@ fun upload(auth: Auth, uploadFormat: String, source: File, name: String = source
     }
 }
 
-fun probeGitHubRepositoryFormat(base: String = "https://api.github.com", auth: Auth? = null): String =
-        connectionOf(base, auth = auth).withReader {
+fun probeGitHubRepositoryFormat(base: String = "https://api.github.com", token: String? = null): String =
+        connectionOf(base, token = token).withReader {
             it.toJSONObject()?.getRaw("repository_url")?.toString() ?: throw IllegalArgumentException("No repository_url endpoint found for $base")
         }
 
-fun probeGitHubReleasesFormat(repositoryFormat: String, repo: Repo, auth: Auth? = null): String =
-        connectionOf(repositoryFormat.expandURLFormat(mapOf("owner" to repo.user, "repo" to repo.repoName)), auth = auth).withReader {
-            it.toJSONObject()?.getRaw("releases_url")?.toString() ?: throw IllegalArgumentException("No releases_url found for $repositoryFormat ($repo)")
+data class RepositoryUrlFormats(val releasesFormat: String, val tagsFormat: String)
+fun probeGitHubReleasesFormat(repositoryFormat: String, repo: Repo, token: String? = null): RepositoryUrlFormats =
+        connectionOf(repositoryFormat.expandURLFormat(mapOf("owner" to repo.user, "repo" to repo.repoName)), token = token).withReader {
+            it.toJSONObject()?.let { json ->
+                RepositoryUrlFormats(
+                    releasesFormat = json.required("releases_url"),
+                    tagsFormat = json.required("tags_url")
+                )
+            } ?: throw IllegalArgumentException("No response found")
         }
+
+fun JSONObject.required(name: String) = getRaw(name)?.toString() ?: throw IllegalArgumentException("No $name found")

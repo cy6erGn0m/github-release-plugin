@@ -19,12 +19,18 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
+
+        <configuration>
+          <tagName>github-release-parent-${project.version}</tagName>
+          <preRelease>true</preRelease>
+        </configuration>
+
         <executions>
           <execution>
-            <id>yo</id>
             <goals>
-              <goal>yo</goal>
+              <goal>gh-upload</goal>
             </goals>
+            <phase>deploy</phase>
           </execution>
         </executions>
       </plugin>

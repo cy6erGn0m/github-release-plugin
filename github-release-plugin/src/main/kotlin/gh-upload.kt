@@ -51,13 +51,22 @@ public class GitHubUpload : AbstractMojo() {
             log.warn("GitHubUpload mojo has been skipped because maven.deploy.skip=true")
             return
         }
+        if (settings?.isOffline == true) {
+            throw MojoFailureException("Can't upload artifacts in offline mode")
+        }
 
         val repo = getRepo()
         val serverSettings = findServerSettings() ?: throw MojoFailureException("GitHub upload failed: no server configuration found for $serverId in settings.xml")
-        val auth = Auth(
-                userName = serverSettings.username ?: throw MojoFailureException("No username configured for github server ${serverSettings.id}"),
-                personalAccessToken = serverSettings.password?.decryptIfNeeded() ?: throw MojoFailureException("No password/personal access token specified for github server ${serverSettings.id}")
-        )
+//        val auth = Auth(
+//                userName = serverSettings.username ?: throw MojoFailureException("No username configured for github server ${serverSettings.id}"),
+//                personalAccessToken = serverSettings.password?.decryptIfNeeded() ?: throw MojoFailureException("No password/personal access token specified for github server ${serverSettings.id}")
+//        )
+
+        log.warn("Server is: ${serverSettings.username}")
+
+        val auth = serverSettings.password?.decryptIfNeeded() ?: throw MojoFailureException("No password/personal access token specified for github server ${serverSettings.id}")
+
+        log.debug("Server token is $auth")
 
         log.info("Contacting server ${serverSettings.id} @ ${repo.serverEndpoint}")
         val repositoryFormat = probeGitHubRepositoryFormat(repo.serverEndpoint, auth)
@@ -65,13 +74,9 @@ public class GitHubUpload : AbstractMojo() {
         log.debug("Releases URL format is $releasesFormat")
 
         log.info("Lookup/create release for tag $tagName")
-        val release = findRelease(releasesFormat, tagName, auth) ?: createRelease(auth, releasesFormat, tagName, releaseTitle, "", preRelease)
+        val release = findRelease(releasesFormat.releasesFormat, tagName, auth) ?: createRelease(auth, releasesFormat.releasesFormat, tagName, releaseTitle, "", preRelease)
                 ?: throw MojoFailureException("Failed to find/create release for tag $tagName")
         log.debug("Found release $release")
-
-        if (settings?.isOffline ?: false) {
-            throw MojoFailureException("Can't upload artifacts in offline mode")
-        }
 
         val defaultArtifact = project?.artifact
         if (defaultArtifact != null) {

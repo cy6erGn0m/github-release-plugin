@@ -6,8 +6,8 @@ import java.io.*
 import java.net.*
 
 fun String.encodeURLComponent() = URLEncoder.encode(this, "UTF-8")
-internal fun <T> URLConnection.withReader(block: (Reader) -> T): T = getInputStream().reader().use(block)
-internal fun JSONObject.getAsLong(key: String) = (get(key) as? Number)?.toLong()
+internal fun <T> URLConnection.withReader(block: (Reader) -> T): T = inputStream.reader().use(block)
+internal fun JSONObject.getAsLong(key: String) = (getRaw(key) as? Number)?.toLong()
 internal fun Reader.toJSONObject(): JSONObject? = JSONParser().parse(this) as? JSONObject
 
 fun String.parseSCMUrl(): Repo? =
