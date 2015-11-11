@@ -4,12 +4,12 @@
 
     <groupId>cy.github</groupId>
     <artifactId>github-release-parent</artifactId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.2.3</version>
     <packaging>pom</packaging>
 
     <scm>
         <connection>scm:git:git@github.com:cy6erGn0m/github-release-plugin.git</connection>
-      <tag>HEAD</tag>
+      <tag>github-release-parent-0.2.3</tag>
   </scm>
 
     <properties>
