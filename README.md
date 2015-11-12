@@ -1,5 +1,5 @@
 # github-release-plugin
-Maven plugin for uploading artifacts to the GitHub releases
+Maven plugin to deploy artifacts to the GitHub releases. 
 
 ## Setup
 
