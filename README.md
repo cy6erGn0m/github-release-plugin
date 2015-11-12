@@ -50,7 +50,8 @@ Maven plugin for uploading artifacts to the GitHub releases
 
 - Obtain token at github: https://github.com/settings/tokens
 - Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token
- ```xml
+ 
+```xml
      <server>
         <id>github</id>
         <username>username</username>
