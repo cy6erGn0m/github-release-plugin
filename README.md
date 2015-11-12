@@ -3,14 +3,14 @@ Maven plugin for uploading artifacts to the GitHub releases
 
 ## Setup
 
-1. Add git URL (SSH or https url)
+- Add git URL (SSH or https url)
 ```xml
     <scm>
         <connection>scm:git:git@github.com:owner/repository.git</connection>
         <tag>HEAD</tag>
     </scm>
-    ```
-2. Add plugin 
+```
+- Add plugin 
 ```xml
     <pluginRepositories>
         <pluginRepository>
@@ -46,10 +46,10 @@ Maven plugin for uploading artifacts to the GitHub releases
             </plugin>
         </plugins>
     </build>
-    ```
+```
 
-3. Obtain token at github: https://github.com/settings/tokens
-4. Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token
+- Obtain token at github: https://github.com/settings/tokens
+- Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token
  ```xml
      <server>
         <id>github</id>
