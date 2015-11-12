@@ -49,7 +49,7 @@ Maven plugin for uploading artifacts to the GitHub releases
 ```
 
 - Obtain token at github: https://github.com/settings/tokens
-- Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token
+- Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token. If you use TeamCity you have to configure [settings.xml for you build configuration](https://confluence.jetbrains.com/display/TCD9/Maven+Server-Side+Settings)
  
 ```xml
      <server>
