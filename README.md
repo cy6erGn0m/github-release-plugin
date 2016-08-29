@@ -48,8 +48,8 @@ Maven plugin to deploy artifacts to the GitHub releases.
     </build>
 ```
 
-- Obtain token at github: https://github.com/settings/tokens
-- Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token. If you use TeamCity you have to configure [settings.xml for you build configuration](https://confluence.jetbrains.com/display/TCD9/Maven+Server-Side+Settings)
+- Obtain token at github: https://github.com/settings/tokens  (repo and user access are required for successful upload)
+- Open your [~/.m2/settings.xml](https://maven.apache.org/settings.html) and add server with the token. If you use TeamCity you have to configure [settings.xml for you build configuration](https://confluence.jetbrains.com/display/TCD10/Maven+Server-Side+Settings)
  
 ```xml
     <server>
@@ -58,6 +58,8 @@ Maven plugin to deploy artifacts to the GitHub releases.
         <password>(your token here)</password>
     </server>
 ```
+
+Note: you can use password encryption as well, see [Maven Password Encryption Guide](https://maven.apache.org/guides/mini/guide-encryption.html) for details.
 
 ## Deploy releases
 
