@@ -84,7 +84,7 @@ fun JSONObject?.parseRelease(releasesFormat: String): Release? {
     return if (this == null || id == null) {
         null
     } else {
-        Release(this.getRaw("tag_name")!!.toString(), this.getAsLong("id")!!, releasesFormat, this.getRaw("upload_url")!!.toString(), this.getRaw("html_url")!!.toString())
+        Release(this["tag_name"]!!.toString(), this.getAsLong("id")!!, releasesFormat, this["upload_url"]!!.toString(), this["html_url"]!!.toString())
     }
 }
 
@@ -133,7 +133,7 @@ fun upload(token: String, uploadFormat: String, source: File, name: String = sou
 
 fun probeGitHubRepositoryFormat(base: String = "https://api.github.com", token: String? = null): String =
         connectionOf(base, token = token).withReader {
-            it.toJSONObject()?.getRaw("repository_url")?.toString() ?: throw IllegalArgumentException("No repository_url endpoint found for $base")
+            it.toJSONObject()?.get("repository_url")?.toString() ?: throw IllegalArgumentException("No repository_url endpoint found for $base")
         }
 
 data class RepositoryUrlFormats(val releasesFormat: String, val tagsFormat: String)
@@ -147,4 +147,4 @@ fun probeGitHubReleasesFormat(repositoryFormat: String, repo: Repo, token: Strin
             } ?: throw IllegalArgumentException("No response found")
         }
 
-fun JSONObject.required(name: String) = getRaw(name)?.toString() ?: throw IllegalArgumentException("No $name found")
+fun JSONObject.required(name: String) = get(name)?.toString() ?: throw IllegalArgumentException("No $name found")

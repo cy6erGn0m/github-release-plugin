@@ -9,7 +9,7 @@ import org.apache.maven.settings.crypto.*
 import org.sonatype.plexus.components.sec.dispatcher.*
 
 @Mojo(name = "gh-upload", defaultPhase = LifecyclePhase.DEPLOY, requiresOnline = true, threadSafe = true)
-public class GitHubUpload : AbstractMojo() {
+class GitHubUpload : AbstractMojo() {
 
     @Component
     lateinit var security: SecDispatcher
@@ -102,7 +102,7 @@ public class GitHubUpload : AbstractMojo() {
     } ?: this
 
     private val interactiveMode: Boolean
-        get() = settings.isInteractiveMode ?: false
+        get() = settings.isInteractiveMode
 
     private fun findServerSettings(): Server? = settings.getServer(serverId)?.let { decryptor.decrypt(DefaultSettingsDecryptionRequest(it)).servers.single() }
 

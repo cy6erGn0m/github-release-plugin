@@ -5,12 +5,12 @@ import org.json.simple.parser.*
 import java.io.*
 import java.net.*
 
-fun String.encodeURLComponent() = URLEncoder.encode(this, "UTF-8")
+fun String.encodeURLComponent() = URLEncoder.encode(this, "UTF-8")!!
 internal fun <T> URLConnection.withReader(block: (Reader) -> T): T = inputStream.reader().use(block)
-internal fun JSONObject.getAsLong(key: String) = (getRaw(key) as? Number)?.toLong()
+internal fun JSONObject.getAsLong(key: String) = (get(key) as? Number)?.toLong()
 internal fun Reader.toJSONObject(): JSONObject? = JSONParser().parse(this) as? JSONObject
 
 fun String.parseSCMUrl(): Repo? =
-        "^scm:git:([^\\@]+@)?(https?://)?([^:]+):([^/]+)/([^/]+)\\.git".toRegex().match(this)?.let { match ->
+        "^scm:git:([^@]+@)?(https?://)?([^:]+):([^/]+)/([^/]+)\\.git".toRegex().matchEntire(this)?.let { match ->
             Repo(endpointOf(match.groups[2]?.value, match.groups[3]!!.value), match.groups[4]!!.value, match.groups[5]!!.value)
         }

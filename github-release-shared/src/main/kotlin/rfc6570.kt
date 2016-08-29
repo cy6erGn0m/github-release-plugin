@@ -76,7 +76,7 @@ private fun String.mapList(keys: Map<String, *>): List<Value> = trim().split("\\
     when (value) {
         null -> emptyList<Value>()
         is Map<*, *> -> listOf(MapValue(clearedKey, expand, value.entries.filter { it.key != null && it.value != null}.map { it.key.toString() to it.value.toString()} ))
-        is Iterable<*> -> listOf(ListValue(clearedKey, expand, value.filterNotNull().map { it.toString() }))
+        is Iterable<*> -> listOf(ListValue(clearedKey, expand, value.filterNotNull().map(Any::toString)))
         else -> listOf(SingleValue(clearedKey, value.toString().subStringIfIndexNotNull(sliceIndex)))
     }
 }
