@@ -11,6 +11,6 @@ internal fun JSONObject.getAsLong(key: String) = (get(key) as? Number)?.toLong()
 internal fun Reader.toJSONObject(): JSONObject? = JSONParser().parse(this) as? JSONObject
 
 fun String.parseSCMUrl(): Repo? =
-        "^scm:git:([^@]+@)?(https?://)?([^:]+):([^/]+)/([^/]+)\\.git".toRegex().matchEntire(this)?.let { match ->
+        "^scm:git:([^@]+@)?(ssh://|https?://)?([^:]+)[:/]([^/]+)/([^/]+)\\.git".toRegex().matchEntire(this)?.let { match ->
             Repo(endpointOf(match.groups[2]?.value, match.groups[3]!!.value), match.groups[4]!!.value, match.groups[5]!!.value)
         }
